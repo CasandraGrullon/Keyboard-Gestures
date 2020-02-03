@@ -10,7 +10,7 @@ import UIKit
 import AVFoundation
 
 class ViewController: UIViewController {
-
+    
     @IBOutlet weak var pursuitLogo: UIImageView!
     
     @IBOutlet weak var usernameTextField: UITextField!
@@ -19,7 +19,7 @@ class ViewController: UIViewController {
     
     @IBOutlet weak var pLogoCenterY: NSLayoutConstraint!
     
-    private var originalConstraint = 0
+    private var originalConstraint: NSLayoutConstraint!
     
     private var keyboardIsVisible = false
     
@@ -33,12 +33,12 @@ class ViewController: UIViewController {
         super.viewWillDisappear(true)
         unregisterKeyboardNotifications()
     }
-
+    
     private func registerKeyboardNotifications() {
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(_:)), name: UIResponder.keyboardWillShowNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(_:)), name: UIResponder.keyboardWillHideNotification, object: nil)
     }
-
+    
     private func unregisterKeyboardNotifications() {
         NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
         NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
@@ -53,24 +53,33 @@ class ViewController: UIViewController {
     }
     @objc
     private func keyboardWillHide(_ notification: NSNotification) {
-        
+        resetUI()
     }
     private func moveKeyboardUp(_ height: CGFloat) {
         //if keyboard is already visible, then return --> do nothing
         if keyboardIsVisible { return }
-        keyboardIsVisible = true
+        originalConstraint = pLogoCenterY //saves original value
+        
         //once keyboard is made visible, the object will move up
         pLogoCenterY.constant -= height / 2
-
+        
+        UIView.animate(withDuration: 0.3) {
+            self.view.layoutIfNeeded()
+        }
+        
+        keyboardIsVisible = true
     }
     private func resetUI() {
         keyboardIsVisible = false
+        pLogoCenterY.constant -= originalConstraint.constant
+        UIView.animate(withDuration: 0.3) {
+            self.view.layoutIfNeeded()
+        }
     }
 }
 
 extension ViewController: UITextFieldDelegate {
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        resetUI()
         textField.resignFirstResponder()
         return true
     }
